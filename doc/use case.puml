@@ -1,0 +1,57 @@
+@startuml
+'https://plantuml.com/use-case-diagram
+
+left to right direction
+
+:User: as user
+
+rectangle "Password Manager" {
+
+    rectangle "Accounts and settings" {
+        user --> (Edit manager's account)
+        (Edit manager's account) <.. (Change manager's password) : extend
+        (Edit manager's account) <.. (Change manager's login) : extend
+        (Edit manager's account) <.. (Change manager's username) : extend
+        
+        user --> (Edit global settings)
+        (Edit global settings) <.. (Edit path to database) : extend
+        (Edit global settings) <.. (Change max amount of backups) : extend
+        (Edit global settings) <.. (Change backup period) : extend
+        (Edit global settings) <.. (Edit path of backup folder) : extend
+        
+        user ---> (Edit user's settings)
+        (Edit user's settings) <.. (Change time to manager's lock) : extend
+        (Edit user's settings) <.. (Change amount of unsuccessful attempts to log out) : extend
+        (Edit user's settings) <.. (Change amount of unsuccessful attempts to account removal) : extend
+        (Edit user's settings) <.. (Set master password) : extend
+        (Edit user's settings) <.. (Remove master password) : extend
+        (Edit user's settings) <.. (Edit master password) : extend
+        note right of (Change time to manager's lock)
+        If master password has been set
+        end note
+        
+        user --> (Administer manager's account)
+        (Administer manager's account) <.. (Restore from backup) : extend
+        (Administer manager's account) <.. (Make backup) : extend
+        (Administer manager's account) <.. (Remove account) : extend
+        (Administer manager's account) <.. (Log out) : extend
+        (Administer manager's account) ..> (Log in) : include
+    }
+
+    rectangle "Within the password manager" {
+        user --> (Operating with records)
+        (Operating with records) <.. (Edit record) : extend
+        (Operating with records) <.. (Remove record) : extend
+        (Operating with records) <.. (Create record) : extend
+        (Operating with records) ..> (Get records) : include
+        note right of (Operating with records)
+        Record types:
+        * account info
+        * bank card
+        * user's document
+        * etc.
+        end note
+    }
+}
+
+@enduml
