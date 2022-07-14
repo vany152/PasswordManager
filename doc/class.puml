@@ -1,0 +1,162 @@
+﻿@startuml
+'https://plantuml.com/class-diagram
+
+interface IEncryptableRecord {
+    + Encrypt(key : byte[]) : IDecryptableRecord
+    + Encrypt(key, iv : byte[]) : IDecryptableRecord
+}
+CryptoUtils <-- IEncryptableRecord : calls methods
+
+interface IDecryptableRecord
+{
+    + IV : byte[]    
+    + Decrypt(key : byte[]) : IRecord
+}
+IEncryptableRecord <-- IDecryptableRecord
+
+class EncryptedRecord
+{
+    - record : IRecord
+    
+    + EncryptedRecord(record : IRecord, key : byte[])
+    + EncryptedRecord(record : IRecord, key, iv : byte[])
+}
+IDecryptableRecord <|-- EncryptedRecord
+'строка находится здесь, а не под RecordDbManager потому, что диаграмма начинает неадекватно выглядеть
+RecordDbManager --> IDecryptableRecord : method returns
+
+interface IRecord {
+    + RecordName : string
+    
+    + RecordCreationTime : DateTime
+    + RecordLastUpdatedTime : Datetime
+    + RecordUid : integer
+}
+IEncryptableRecord <|-- IRecord
+EncryptedRecord "1" *-- "1" IRecord
+
+''' stored in Accounts table
+class Account {
+    - username : string
+    - login : string
+    - password : string
+    - comment : string
+}
+IRecord <|-- Account
+DbObj <-- Account : template\nparemeter
+
+''' stored in Documents table
+class Document {
+    - category : DocumentCategory
+    - path : string
+}
+IRecord <|-- Document
+enum DocumentCategory {
+    Passport
+    DriverLicense
+    BankCard
+    Insurance
+    Other
+}
+Document *-- DocumentCategory
+DbObj <-- Document : template\nparemeter
+
+''' stored in BankCards table
+class BankCard {
+    - cardNumber : long
+    - cardholder : string
+    - expirationDate : Date
+    - cvc/cvv : short
+    - paymentSystem : PaymentSystem
+}
+IRecord <|-- BankCard
+DbObj <-- BankCard : template\nparemeter
+enum PaymentSystem {
+    Visa
+    MasterCard
+    Mir
+    Maestro
+    UnionPay
+    AmericanExpress
+    JCB
+    Other
+}
+BankCard *-- PaymentSystem
+
+''' database management
+class RecordDbManager {    
+    + Create<RecordType>(record : RecordType) : void
+    + Read<RecordType>() : IDecryptableRecord[]
+    + Update<RecordType>(record : RecordType) : void
+    + Delete<RecordType>(record : RecordType) : void
+}
+
+class DbObject {
+    - data : IDbObj
+    
+    + DbObject<DataType>(obj : DataType)
+    
+    + Create(db : Database)
+    + Update(db : Database)
+    + Delete(db : Database)
+}
+RecordDbManager <--> DbObject : manager calls\n DbObject's methods
+RecordDbUtils <-- DbObject : calls methods
+DbObj <-- DbObject : template\nparameter
+note left of DbObject::DbObject<DataType>
+    When called, constructor initializes 
+    field DbObj::data with incoming obj 
+end note
+
+interface IDbObj {
+    + Create(db : DataBase) : void
+    + Delete(db : DataBase) : void
+    + Update(db : DataBase) : void
+}
+DbObject "1" *--> "1" IDbObj : calls methods
+
+class DbObj <DataType> {
+    - data : DataType
+}
+IDbObj <|-- DbObj
+
+class RecordDbUtils {
+    + Save(db : Database, obj: DbObject) : void
+    + Edit(db : Database, obj : DbObject) : void
+    + Remove(db : Database, obj : DbObject) : void
+
+    + Save(db : Database, obj : Document) : void
+    + Edit(db : Database, obj : Document) : void
+    + Remove(db : Database, obj : Document) : void
+    
+    + Save(db : Database, obj : Account) : void
+    + Edit(db : Database, obj : Account) : void
+    + Remove(db : Database, obj : Account) : void
+
+    + Save(db : Database, obj : BankCard) : void
+    + Edit(db : Database, obj : BankCard) : void
+    + Remove(db : Database, obj : BankCard) : void
+}
+note left of RecordDbUtils
+    If we want to create a new realization of 
+    IRecord interface, we need to add methods, 
+    that make possible to process this child by 
+    database manager, here
+end note
+
+
+
+
+
+
+class CryptoUtils {    
+    + Encrypt (data, key, iv : byte[]) : byte[]
+    + Decrypt (data, key, iv : byte[]) : byte[]
+    + GetSHA256 (data : byte[]) : byte[]
+    + GetSHA512 (data : byte[]) : byte[]
+}
+note right of CryptoUtils
+    The CBC mode of AES is used
+end note
+
+@enduml
