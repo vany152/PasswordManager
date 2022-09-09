@@ -1,0 +1,25 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+actor User
+boundary "App Front" as Interface
+boundary "App Back" as back
+control "Check Password" as checkPassword
+control "Generate KEK" as generateKEK
+database DataBase as db
+control Decrypt as decrypt
+
+User -> Interface ++ : auth button
+Interface -> back ++ : password
+back -> checkPassword ++ : SHA-512 of password
+back <- checkPassword -- : result (yes \ no)
+Interface <- back : auth result (yes \ no)
+Interface -> User : auth result (yes \ no)
+
+back -> generateKEK ++ : SHA-256 of password
+back <- generateKEK -- : KEK
+back -> db : KEK
+db -> decrypt ++ : KEK, encrypted MEK
+back <- decrypt -- : decrypted MEK
+
+@enduml
